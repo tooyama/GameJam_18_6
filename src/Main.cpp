@@ -2,6 +2,7 @@
 
 void Main()
 {
+    Window::SetTitle(U"リアルタイム挟み将棋");
     Window::Resize(1280, 720);
 	Graphics::SetBackground(ColorF(1.0, 0.9, 0.7));
     
@@ -9,6 +10,8 @@ void Main()
     
     const Texture piece_P1(U"image/pawn_red.png");
     const Texture piece_P2(U"image/pawn_blue.png");
+    const Texture inputImage_P1(U"image/input.png");
+    const Texture inputImage_P2(U"image/input2.png");
     
     const Audio systemSE(Wave(GMInstrument::TaikoDrum, PianoKey::C4, 1s));
     const Audio selectSE(Wave(GMInstrument::Woodblock, PianoKey::C4, 1s));
@@ -34,7 +37,7 @@ void Main()
         Vec2(size*2,size),
     };
     
-    const double restartCount = 0.5;
+    const double restartCount = 1.0;
     
     Stopwatch countTimer_P1(false);
     Stopwatch countTimer_P2(false);
@@ -79,6 +82,14 @@ void Main()
             isActive = true;
             countTimer_P1.start();
             countTimer_P2.start();
+        }
+        
+        if(isWin_P1 || isWin_P2)
+        {
+            if(KeySpace.down())
+            {
+                System::Exit();
+            }
         }
 
         if(isActive)
@@ -144,7 +155,7 @@ void Main()
                             {
                                 if(i==selectedPos.x && abs(int(j-selectedPos.y)) <= moveCount_P2)
                                 {
-                                    moveCount_P2 -= abs(int(j-selectedPos.y))+1;
+                                    moveCount_P2 -= abs(int(j-selectedPos.y));
                                     selectPos_P2 = Point(i,j);
                                     squares[i][j] = -1;
                                     squares[selectedPos.x][selectedPos.y] = 0;
@@ -154,7 +165,7 @@ void Main()
                                 }
                                 else if(j==selectedPos.y && abs(int(i-selectedPos.x)) <= moveCount_P2)
                                 {
-                                    moveCount_P2 -= abs(int(i-selectedPos.x))+1;
+                                    moveCount_P2 -= abs(int(i-selectedPos.x));
                                     selectPos_P2 = Point(i,j);
                                     squares[i][j] = -1;
                                     squares[selectedPos.x][selectedPos.y] = 0;
@@ -333,14 +344,17 @@ void Main()
         
         for (const auto i : Range(1, maxMoveCount))
         {
-            const Vec2 pos_P1 = OffsetCircular(moveCountCenter_P1, 100, 36_deg * i);
+            const Vec2 pos_P1 = OffsetCircular(moveCountCenter_P1, 120, 36_deg * i);
             if(i<=moveCount_P1)Circle(pos_P1, 20).draw(ColorF(0.8,0,0));
             else Circle(pos_P1, 20).draw(ColorF(0.8,0,0,0.5));
             
-            const Vec2 pos_P2 = OffsetCircular(moveCountCenter_P2, 100, 36_deg * i);
+            const Vec2 pos_P2 = OffsetCircular(moveCountCenter_P2, 120, 36_deg * i);
             if(i<=moveCount_P2)Circle(pos_P2, 20).draw(ColorF(0,0,0.8));
             else Circle(pos_P2, 20).draw(ColorF(0,0,0.8,0.5));
         }
+        
+        inputImage_P1.scaled(0.15).drawAt(moveCountCenter_P1);
+        inputImage_P2.scaled(0.15).drawAt(moveCountCenter_P2);
         
         if(isHold)
         {

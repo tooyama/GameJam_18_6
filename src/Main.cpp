@@ -10,6 +10,11 @@ void Main()
     const Texture piece_P1(U"image/pawn_red.png");
     const Texture piece_P2(U"image/pawn_blue.png");
     
+    const Audio systemSE(Wave(GMInstrument::TaikoDrum, PianoKey::C4, 1s));
+    const Audio selectSE(Wave(GMInstrument::Woodblock, PianoKey::C4, 1s));
+    const Audio pieceSE(Wave(GMInstrument::Woodblock, PianoKey::C2, 1s));
+    const Audio getSE(Wave(GMInstrument::Gunshot, PianoKey::C4, 1s));
+    
     const double size = 70;
     const Vec2 range(320,50);
     
@@ -69,6 +74,7 @@ void Main()
         //入力
         if(!isStart && KeySpace.down())
         {
+            systemSE.playOneShot();
             isStart = true;
             isActive = true;
             countTimer_P1.start();
@@ -88,6 +94,7 @@ void Main()
                         ++selectPos_P1.x;
                         --moveCount_P1;
                         countTimer_P1.restart();
+                        pieceSE.playOneShot();
                     }
                     else if(KeyA.down() && squares[selectPos_P1.x-1][selectPos_P1.y] == 0 && 0 < selectPos_P1.x)
                     {
@@ -96,6 +103,7 @@ void Main()
                         --selectPos_P1.x;
                         --moveCount_P1;
                         countTimer_P1.restart();
+                        pieceSE.playOneShot();
                     }
                     else if(KeyW.down() && squares[selectPos_P1.x][selectPos_P1.y-1] == 0 && 0 < selectPos_P1.x)
                     {
@@ -104,6 +112,7 @@ void Main()
                         --selectPos_P1.y;
                         --moveCount_P1;
                         countTimer_P1.restart();
+                        pieceSE.playOneShot();
                     }
                     else if(KeyS.down() && squares[selectPos_P1.x][selectPos_P1.y+1] == 0 && selectPos_P1.y < squares.height()-1)
                     {
@@ -112,15 +121,16 @@ void Main()
                         ++selectPos_P1.y;
                         --moveCount_P1;
                         countTimer_P1.restart();
+                        pieceSE.playOneShot();
                     }
                 }
             }
         
-            if(KeyQ.down()) selectPos_P1 = Point(0,0);
-            if(KeyRight.down() && selectPos_P1.x < squares.width()-1) ++selectPos_P1.x;
-            if(KeyLeft.down() && 0 < selectPos_P1.x) --selectPos_P1.x;
-            if(KeyUp.down() && 0 < selectPos_P1.y) --selectPos_P1.y;
-            if(KeyDown.down() && selectPos_P1.y < squares.height()-1) ++selectPos_P1.y;
+            if(KeyQ.down()){ selectPos_P1 = Point(0,0);selectSE.playOneShot();}
+            if(KeyRight.down() && selectPos_P1.x < squares.width()-1){ ++selectPos_P1.x; selectSE.playOneShot();}
+            if(KeyLeft.down() && 0 < selectPos_P1.x){ --selectPos_P1.x; selectSE.playOneShot();}
+            if(KeyUp.down() && 0 < selectPos_P1.y){ --selectPos_P1.y; selectSE.playOneShot();}
+            if(KeyDown.down() && selectPos_P1.y < squares.height()-1){ ++selectPos_P1.y; selectSE.playOneShot();}
             
             for (auto i : step(squares.height()))
             {
@@ -139,6 +149,8 @@ void Main()
                                     squares[i][j] = -1;
                                     squares[selectedPos.x][selectedPos.y] = 0;
                                     isHold = false;
+                                    countTimer_P2.restart();
+                                    pieceSE.playOneShot();
                                 }
                                 else if(j==selectedPos.y && abs(int(i-selectedPos.x)) <= moveCount_P2)
                                 {
@@ -147,6 +159,8 @@ void Main()
                                     squares[i][j] = -1;
                                     squares[selectedPos.x][selectedPos.y] = 0;
                                     isHold = false;
+                                    countTimer_P2.restart();
+                                    pieceSE.playOneShot();
                                 }
                             }
                         }
@@ -157,6 +171,7 @@ void Main()
                                 selectPos_P2 = Point(i,j);
                                 selectedPos = Point(i,j);
                                 isHold = true;
+                                selectSE.playOneShot();
                             }
                         }
                     }
@@ -186,6 +201,7 @@ void Main()
                             {
                                 squares[k][j] = 0;
                                 ++getPieceCount_P2;
+                                getSE.playOneShot();
                             }
                         }
                         
@@ -206,6 +222,7 @@ void Main()
                             {
                                 squares[i][k] = 0;
                                 ++getPieceCount_P2;
+                                getSE.playOneShot();
                             }
                         }
                     }
@@ -228,6 +245,7 @@ void Main()
                             {
                                 squares[k][j] = 0;
                                 ++getPieceCount_P1;
+                                getSE.playOneShot();
                             }
                         }
                         
@@ -248,6 +266,7 @@ void Main()
                             {
                                 squares[i][k] = 0;
                                 ++getPieceCount_P1;
+                                getSE.playOneShot();
                             }
                         }
                     }
@@ -268,12 +287,14 @@ void Main()
             
             if(maxGotPieceCount <= getPieceCount_P1 && !isWin_P2)
             {
+                systemSE.playOneShot();
                 isActive = false;
                 isWin_P1 = true;
             }
             
             if(maxGotPieceCount <= getPieceCount_P2 && !isWin_P2)
             {
+                systemSE.playOneShot();
                 isActive = false;
                 isWin_P2 = true;
             }

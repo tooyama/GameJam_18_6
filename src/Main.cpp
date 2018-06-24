@@ -29,7 +29,7 @@ void Main()
         Vec2(size*2,size),
     };
     
-    const double restartCount = 0.25;
+    const double restartCount = 0.5;
     
     Stopwatch countTimer_P1(false);
     Stopwatch countTimer_P2(false);
@@ -47,6 +47,9 @@ void Main()
     
     Point selectPos_P1(0,0);
     Point selectPos_P2(8,8);
+    
+    bool isHold = false;
+    Point selectedPos(0,0);
     
     Grid<int> squares =
     {
@@ -118,6 +121,47 @@ void Main()
             if(KeyLeft.down() && 0 < selectPos_P1.x) --selectPos_P1.x;
             if(KeyUp.down() && 0 < selectPos_P1.y) --selectPos_P1.y;
             if(KeyDown.down() && selectPos_P1.y < squares.height()-1) ++selectPos_P1.y;
+            
+            for (auto i : step(squares.height()))
+            {
+                for (auto j : step(squares.width()))
+                {
+                    if(RectF(range.x+i*size,range.y+j*size,size,size).leftClicked())
+                    {
+                        if(isHold)
+                        {
+                            if(squares[i][j]==0)
+                            {
+                                if(i==selectedPos.x && abs(int(j-selectedPos.y)) <= moveCount_P2)
+                                {
+                                    moveCount_P2 -= abs(int(j-selectedPos.y))+1;
+                                    selectPos_P2 = Point(i,j);
+                                    squares[i][j] = -1;
+                                    squares[selectedPos.x][selectedPos.y] = 0;
+                                    isHold = false;
+                                }
+                                else if(j==selectedPos.y && abs(int(i-selectedPos.x)) <= moveCount_P2)
+                                {
+                                    moveCount_P2 -= abs(int(i-selectedPos.x))+1;
+                                    selectPos_P2 = Point(i,j);
+                                    squares[i][j] = -1;
+                                    squares[selectedPos.x][selectedPos.y] = 0;
+                                    isHold = false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if(squares[i][j]==-1)
+                            {
+                                selectPos_P2 = Point(i,j);
+                                selectedPos = Point(i,j);
+                                isHold = true;
+                            }
+                        }
+                    }
+                }
+            }
             //処理
             for (auto i : step(squares.height()))
             {
@@ -275,6 +319,11 @@ void Main()
             const Vec2 pos_P2 = OffsetCircular(moveCountCenter_P2, 100, 36_deg * i);
             if(i<=moveCount_P2)Circle(pos_P2, 20).draw(ColorF(0,0,0.8));
             else Circle(pos_P2, 20).draw(ColorF(0,0,0.8,0.5));
+        }
+        
+        if(isHold)
+        {
+            piece_P2.resized(size).rotated(-90_deg).drawAt(Cursor::Pos(),AlphaF(0.5));
         }
         
         if(!isActive)

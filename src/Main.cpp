@@ -1,10 +1,49 @@
 # include <Siv3D.hpp> // OpenSiv3D v0.2.6
 
+struct Fall : IEffect
+{
+    struct Particle
+    {
+        Vec2 pos, v0;
+    };
+    
+    Array<Particle> m_particles;
+    Texture tex;
+    
+    Fall(const Vec2& pos, int count, Texture _tex)
+    : m_particles(count)
+    {
+        tex = _tex;
+        int i=0;
+        for (auto& particle : m_particles)
+        {
+            const Vec2 v = Circular(10, 360_deg/count*i);
+            particle.pos = pos + Vec2(35,35) + v;
+            particle.v0 = v * 10.0;
+            ++i;
+        }
+    }
+    
+    bool update(double t) override
+    {
+        for (const auto& particle : m_particles)
+        {
+            const Vec2 pos = particle.pos + particle.v0 * t + 0.5* t*t * Vec2(0, 320);
+            
+            tex.scaled(0.1).rotated(t*360_deg).drawAt(pos,AlphaF(1.0 - t));
+        }
+        
+        return t < 1.0;
+    }
+};
+
 void Main()
 {
     Window::SetTitle(U"リアルタイム挟み将棋");
     Window::Resize(1280, 720);
 	Graphics::SetBackground(ColorF(1.0, 0.9, 0.7));
+    
+    Effect effect;
     
     const Font font(50,Typeface::Bold);
     
@@ -37,7 +76,7 @@ void Main()
         Vec2(size*2,size),
     };
     
-    const double restartCount = 1.0;
+    const double restartCount = 0.8;
     
     Stopwatch countTimer_P1(false);
     Stopwatch countTimer_P2(false);
@@ -213,6 +252,7 @@ void Main()
                                 squares[k][j] = 0;
                                 ++getPieceCount_P2;
                                 getSE.playOneShot();
+                                effect.add<Fall>(Vec2(range.x+k*size,range.y+j*size), 5, piece_P2);
                             }
                         }
                         
@@ -234,6 +274,7 @@ void Main()
                                 squares[i][k] = 0;
                                 ++getPieceCount_P2;
                                 getSE.playOneShot();
+                                effect.add<Fall>(Vec2(range.x+i*size,range.y+k*size), 5, piece_P1);
                             }
                         }
                     }
@@ -257,6 +298,7 @@ void Main()
                                 squares[k][j] = 0;
                                 ++getPieceCount_P1;
                                 getSE.playOneShot();
+                                effect.add<Fall>(Vec2(range.x+k*size,range.y+j*size), 5, piece_P2);
                             }
                         }
                         
@@ -278,6 +320,7 @@ void Main()
                                 squares[i][k] = 0;
                                 ++getPieceCount_P1;
                                 getSE.playOneShot();
+                                effect.add<Fall>(Vec2(range.x+i*size,range.y+k*size), 5, piece_P2);
                             }
                         }
                     }
@@ -360,6 +403,8 @@ void Main()
         {
             piece_P2.resized(size).rotated(-90_deg).drawAt(Cursor::Pos(),AlphaF(0.5));
         }
+        
+        effect.update();
         
         if(!isActive)
         {
